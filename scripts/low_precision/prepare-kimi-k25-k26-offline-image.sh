@@ -21,9 +21,11 @@ if [[ "${KIMI_HF_CKPT}" == KIMI_HF_CKPT=* ]]; then
 fi
 
 SLIME_DIR="${SLIME_DIR:-/root/slime}"
+MEGATRON_LM_DIR="${MEGATRON_LM_DIR:-/root/Megatron-LM}"
 BRIDGE_SPEC="${BRIDGE_SPEC:-git+https://github.com/innoseon/Megatron-Bridge.git@v0.4.0-slime-kimi}"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 PATCHED_SLIME_SRC="${PATCHED_SLIME_SRC:-$(cd "${SCRIPT_DIR}/../.." && pwd)}"
+MEGATRON_PATCH="${MEGATRON_PATCH:-${PATCHED_SLIME_SRC}/docker/patch/latest/megatron.patch}"
 
 set -x
 export HF_HOME="${HF_HOME:-/root/.cache/huggingface}"
@@ -31,6 +33,18 @@ export TRANSFORMERS_CACHE="${TRANSFORMERS_CACHE:-${HF_HOME}/hub}"
 mkdir -p "${HF_HOME}" "${TRANSFORMERS_CACHE}" "${KIMI_HF_CKPT}"
 
 python -m pip install --force-reinstall --no-deps --no-build-isolation "${BRIDGE_SPEC}"
+
+if [[ "${APPLY_MEGATRON_PATCH:-1}" == "1" && -d "${MEGATRON_LM_DIR}/.git" && -f "${MEGATRON_PATCH}" ]]; then
+    if (cd "${MEGATRON_LM_DIR}" && git apply --reverse --check "${MEGATRON_PATCH}" >/dev/null 2>&1); then
+        echo "[prepare] Megatron-LM patch already applied"
+    elif (cd "${MEGATRON_LM_DIR}" && git apply --check "${MEGATRON_PATCH}" >/dev/null 2>&1); then
+        echo "[prepare] Applying Megatron-LM patch"
+        (cd "${MEGATRON_LM_DIR}" && git apply --3way "${MEGATRON_PATCH}")
+    else
+        echo "[prepare] ERROR: Megatron-LM patch is neither applied nor cleanly applicable: ${MEGATRON_PATCH}" >&2
+        exit 1
+    fi
+fi
 
 if [[ "${PATCHED_SLIME_SRC}" != "${SLIME_DIR}" ]]; then
     install -D "${PATCHED_SLIME_SRC}/slime/utils/megatron_bridge_utils.py" \
