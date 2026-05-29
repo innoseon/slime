@@ -22,6 +22,7 @@ fi
 
 SLIME_DIR="${SLIME_DIR:-/root/slime}"
 MEGATRON_LM_DIR="${MEGATRON_LM_DIR:-/root/Megatron-LM}"
+SGLANG_MODEL_RUNNER="${SGLANG_MODEL_RUNNER:-/sgl-workspace/sglang/python/sglang/srt/model_executor/model_runner.py}"
 BRIDGE_SPEC="${BRIDGE_SPEC:-git+https://github.com/innoseon/Megatron-Bridge.git@v0.4.0-slime-kimi}"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 PATCHED_SLIME_SRC="${PATCHED_SLIME_SRC:-$(cd "${SCRIPT_DIR}/../.." && pwd)}"
@@ -32,7 +33,19 @@ export HF_HOME="${HF_HOME:-/root/.cache/huggingface}"
 export TRANSFORMERS_CACHE="${TRANSFORMERS_CACHE:-${HF_HOME}/hub}"
 mkdir -p "${HF_HOME}" "${TRANSFORMERS_CACHE}" "${KIMI_HF_CKPT}"
 
-python -m pip install --force-reinstall --no-deps --no-build-isolation "${BRIDGE_SPEC}"
+python -m pip install --force-reinstall --no-cache-dir --no-deps --no-build-isolation "${BRIDGE_SPEC}"
+
+if [[ -f "${SGLANG_MODEL_RUNNER}" ]]; then
+    if grep -q "UNBALANCED_MODEL_LOADING_TIMEOUT_S = 480" "${SGLANG_MODEL_RUNNER}"; then
+        sed -i 's/UNBALANCED_MODEL_LOADING_TIMEOUT_S = 480/UNBALANCED_MODEL_LOADING_TIMEOUT_S = 7200/' \
+            "${SGLANG_MODEL_RUNNER}"
+        echo "[prepare] patched SGLang load_model timeout 480s -> 7200s"
+    else
+        echo "[prepare] SGLang load_model timeout already patched or uses a different default"
+    fi
+else
+    echo "[prepare] WARN: ${SGLANG_MODEL_RUNNER} not found; skipping SGLang timeout patch"
+fi
 
 if [[ "${APPLY_MEGATRON_PATCH:-1}" == "1" && -d "${MEGATRON_LM_DIR}/.git" && -f "${MEGATRON_PATCH}" ]]; then
     if (cd "${MEGATRON_LM_DIR}" && git apply --reverse --check "${MEGATRON_PATCH}" >/dev/null 2>&1); then
