@@ -15,6 +15,10 @@ set -euo pipefail
 #   HF_TOKEN=...
 
 : "${KIMI_HF_CKPT:?Set KIMI_HF_CKPT to the final local HF checkpoint path}"
+if [[ "${KIMI_HF_CKPT}" == KIMI_HF_CKPT=* ]]; then
+    KIMI_HF_CKPT="${KIMI_HF_CKPT#KIMI_HF_CKPT=}"
+    export KIMI_HF_CKPT
+fi
 
 SLIME_DIR="${SLIME_DIR:-/root/slime}"
 BRIDGE_SPEC="${BRIDGE_SPEC:-git+https://github.com/innoseon/Megatron-Bridge.git@v0.4.0-slime-kimi}"

@@ -13,6 +13,10 @@ set -euo pipefail
 #   PROMPT_DATA=/path/to/train.jsonl
 
 : "${KIMI_HF_CKPT:?Set KIMI_HF_CKPT=/path/to/Kimi-K2.5-or-Kimi-K2.6-HF}"
+if [[ "${KIMI_HF_CKPT}" == KIMI_HF_CKPT=* ]]; then
+    KIMI_HF_CKPT="${KIMI_HF_CKPT#KIMI_HF_CKPT=}"
+    export KIMI_HF_CKPT
+fi
 : "${SAVE_DIR:?Set SAVE_DIR=/path/to/slime-output}"
 : "${PROMPT_DATA:?Set PROMPT_DATA=/path/to/train.jsonl}"
 
