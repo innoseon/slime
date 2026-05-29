@@ -15,7 +15,7 @@ from torch_memory_saver import torch_memory_saver
 from transformers import AutoConfig, AutoTokenizer
 
 from slime.ray.train_actor import TrainRayActor
-from slime.utils import train_dump_utils
+from slime.utils import megatron_bridge_utils, train_dump_utils
 from slime.utils.data import process_rollout_data
 from slime.utils.distributed_utils import get_gloo_group, init_process_group
 from slime.utils.logging_utils import init_tracking
@@ -133,12 +133,13 @@ class MegatronTrainRayActor(TrainRayActor):
             self.args.vocab_size = hf_vocab if hf_vocab is not None else self.tokenizer.vocab_size
 
         update_weight_cls = UpdateWeightFromTensor if self.args.colocate else UpdateWeightFromDistributed
+        quantization_config = megatron_bridge_utils.get_hf_quantization_config(self.hf_config)
         self.weight_updater = update_weight_cls(
             self.args,
             self.model,
             weights_getter=lambda: self.weights_backuper.get("actor"),
             model_name=type(self.hf_config).__name__.lower() if self.args.model_name is None else self.args.model_name,
-            quantization_config=getattr(self.hf_config, "quantization_config", None),
+            quantization_config=quantization_config,
         )
 
         # empty cache after initialization
