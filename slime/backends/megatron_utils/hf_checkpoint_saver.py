@@ -7,6 +7,8 @@ from typing import Any
 
 import torch
 
+from slime.utils import megatron_bridge_utils
+
 logger = logging.getLogger(__name__)
 
 _HF_WEIGHT_FILE_NAMES = {
@@ -55,7 +57,7 @@ def save_hf_model_direct(args, rollout_id: int, model) -> None:
             payload = [
                 (
                     type(hf_config).__name__.lower() if args.model_name is None else args.model_name,
-                    getattr(hf_config, "quantization_config", None),
+                    megatron_bridge_utils.get_hf_quantization_config(hf_config),
                 )
             ]
         except Exception as e:

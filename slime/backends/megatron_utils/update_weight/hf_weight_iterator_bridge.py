@@ -47,6 +47,9 @@ class HfWeightIteratorBridge(HfWeightIteratorBase):
         self._bridge = megatron_bridge_utils.patch_auto_bridge_hf_config(
             AutoBridge.from_hf_pretrained(self.args.hf_checkpoint, trust_remote_code=True)
         )
+        self.quantization_config = megatron_bridge_utils.annotate_quantization_config_from_bridge(
+            self.quantization_config, self._bridge
+        )
         _patch_bridge_expert_cache_to_cpu()
 
     def get_hf_weight_chunks(self, megatron_local_weights, progress_desc: str = "Update weights"):

@@ -268,6 +268,9 @@ def quantize_params_compressed_tensors(converted_named_params, quantization_conf
     group_size = w_cfg["group_size"]
     is_symmetric = w_cfg["symmetric"]
     ignore_rules = quantization_config.get("ignore", [])
+    quantized_weight_names = quantization_config.get("_slime_quantized_weight_names")
+    if quantized_weight_names is not None:
+        quantized_weight_names = set(quantized_weight_names)
 
     results = []
 
@@ -275,8 +278,13 @@ def quantize_params_compressed_tensors(converted_named_params, quantization_conf
         is_ignored = any(
             (r.startswith("re:") and re.match(r[3:], name)) or r == name or name.startswith(r) for r in ignore_rules
         )
+        is_quantized_weight = (
+            quantized_weight_names is None
+            or name in quantized_weight_names
+            or name.removeprefix("module.") in quantized_weight_names
+        )
 
-        if is_ignored or not name.endswith(".weight") or param.dim() < 2:
+        if is_ignored or not is_quantized_weight or not name.endswith(".weight") or param.dim() < 2:
             results.append((name, param))
             continue
 

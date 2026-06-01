@@ -21,6 +21,26 @@ from slime.utils.megatron_bridge_utils import patch_auto_bridge_hf_config
 from slime.utils.misc import load_function
 
 
+_BRIDGE_PROVIDER_ARG_PASSTHROUGH = (
+    "seq_length",
+    "max_position_embeddings",
+    "attention_dropout",
+    "hidden_dropout",
+    "attention_softmax_in_fp32",
+    "moe_aux_loss_coeff",
+    "moe_router_bias_update_rate",
+)
+
+
+def _copy_args_to_bridge_provider(provider, args: argparse.Namespace) -> None:
+    for name in _BRIDGE_PROVIDER_ARG_PASSTHROUGH:
+        if not hasattr(args, name) or not hasattr(provider, name):
+            continue
+        value = getattr(args, name)
+        if value is not None:
+            setattr(provider, name, value)
+
+
 # Adapt from https://github.com/volcengine/verl/blob/c3b20575d2bc815fcccd84bddb4c0401fc4b632b/verl/models/llama/megatron/layers/parallel_linear.py#L82
 class LinearForLastLayer(torch.nn.Linear):
     def __init__(
@@ -102,6 +122,7 @@ def _get_model_provider_func(
             provider.num_layers_in_first_pipeline_stage = args.decoder_first_pipeline_num_layers
         if getattr(args, "decoder_last_pipeline_num_layers", None) is not None:
             provider.num_layers_in_last_pipeline_stage = args.decoder_last_pipeline_num_layers
+        _copy_args_to_bridge_provider(provider, args)
         provider.finalize()
 
         if role == "critic":

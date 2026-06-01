@@ -13,6 +13,7 @@ from torch_memory_saver import torch_memory_saver
 from transformers import AutoConfig, AutoTokenizer
 
 from slime.ray.train_actor import TrainRayActor
+from slime.utils import megatron_bridge_utils
 from slime.utils import train_dump_utils
 from slime.utils.data import process_rollout_data
 from slime.utils.distributed_utils import get_gloo_group
@@ -150,7 +151,7 @@ class MegatronTrainRayActor(TrainRayActor):
             self.model,
             weights_getter=lambda: self.weights_backuper.get("actor"),
             model_name=type(self.hf_config).__name__.lower() if self.args.model_name is None else self.args.model_name,
-            quantization_config=getattr(self.hf_config, "quantization_config", None),
+            quantization_config=megatron_bridge_utils.get_hf_quantization_config(self.hf_config),
         )
 
         # empty cache after initialization
