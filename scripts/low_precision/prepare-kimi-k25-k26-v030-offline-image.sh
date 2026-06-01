@@ -48,6 +48,8 @@ install -D "${PATCHED_SLIME_SRC}/scripts/models/kimi-k25-k26.sh" \
     "${SLIME_DIR}/scripts/models/kimi-k25-k26.sh"
 install -D "${PATCHED_SLIME_SRC}/scripts/low_precision/run-kimi-k25-k26-bridge.sh" \
     "${SLIME_DIR}/scripts/low_precision/run-kimi-k25-k26-bridge.sh"
+install -D "${PATCHED_SLIME_SRC}/scripts/diagnostics/ray-network-nccl-test.sh" \
+    "${SLIME_DIR}/scripts/diagnostics/ray-network-nccl-test.sh"
 
 if [ ! -d "${BRIDGE_DIR}/.git" ]; then
     rm -rf "${BRIDGE_DIR}"
