@@ -48,8 +48,12 @@ install -D "${PATCHED_SLIME_SRC}/scripts/models/kimi-k25-k26.sh" \
     "${SLIME_DIR}/scripts/models/kimi-k25-k26.sh"
 install -D "${PATCHED_SLIME_SRC}/scripts/low_precision/run-kimi-k25-k26-bridge.sh" \
     "${SLIME_DIR}/scripts/low_precision/run-kimi-k25-k26-bridge.sh"
+install -D "${PATCHED_SLIME_SRC}/scripts/low_precision/convert-kimi-k25-k26-bridge-to-megatron.sh" \
+    "${SLIME_DIR}/scripts/low_precision/convert-kimi-k25-k26-bridge-to-megatron.sh"
 install -D "${PATCHED_SLIME_SRC}/scripts/diagnostics/ray-network-nccl-test.sh" \
     "${SLIME_DIR}/scripts/diagnostics/ray-network-nccl-test.sh"
+install -D "${PATCHED_SLIME_SRC}/tools/convert_hf_to_torch_dist_bridge.py" \
+    "${SLIME_DIR}/tools/convert_hf_to_torch_dist_bridge.py"
 
 if [ ! -d "${BRIDGE_DIR}/.git" ]; then
     rm -rf "${BRIDGE_DIR}"
